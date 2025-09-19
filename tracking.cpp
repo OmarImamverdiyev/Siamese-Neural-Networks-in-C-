@@ -1,21 +1,3 @@
-// tracking.cpp
-// Minimal SiamTPN-style ONNX tracker (C++17 + OpenCV + ONNX Runtime 1.19.0)
-//
-// Build example:
-//   export ORT_HOME="$HOME/dev/onnxruntime-linux-x64-1.19.0"
-//   g++ -std=c++17 tracking.cpp -o tracking \
-//       $(pkg-config --cflags --libs opencv4) \
-//       -I"$ORT_HOME/include" -L"$ORT_HOME/lib" -lonnxruntime \
-//       -Wl,-rpath,"$ORT_HOME/lib"
-//
-// Run example:
-//   ./tracking --video ./test.mp4 --z ./backbone_fpn_z.onnx --x ./backbone_fpn_head_x.onnx \
-//              --show --save ./tracked.avi --box-normalized 0 --hanning 0.2 --smooth 0.6
-//
-// Notes:
-//  * CPU by default. To use CUDA EP (if your ORT build supports it), add the
-//    OrtSessionOptionsAppendExecutionProvider_CUDA line where indicated.
-
 #include <opencv2/opencv.hpp>
 #include <onnxruntime_cxx_api.h>
 
@@ -34,7 +16,7 @@
 #include <tuple>
 #include <vector>
 
-// ---------- tiny helpers ----------
+
 static inline void die_if(bool cond, const std::string& msg) {
     if (cond) throw std::runtime_error(msg);
 }
@@ -49,21 +31,21 @@ static inline bool valid_box(const cv::Rect2f& r){
     return valid_num(r.x) && valid_num(r.y) && valid_num(r.width) && valid_num(r.height);
 }
 
-// ---------- config ----------
+// config
 struct Cfg {
-    float TEMPLATE_FACTOR = 1.5f;   // was 5.0f
-    int   TEMPLATE_SIZE   = 320;    // auto-overridden by model (will become 80)
+    float TEMPLATE_FACTOR = 1.5f;   
+    int   TEMPLATE_SIZE   = 320;    
     float SEARCH_FACTOR   = 5.0f;
-    int   SEARCH_SIZE     = 320;    // auto-overridden by model (will become 320)
-    float HANNING_FACTOR  = 0.01f;  // was 0.0f
+    int   SEARCH_SIZE     = 320;    
+    float HANNING_FACTOR  = 0.01f;  
     float ANCHOR_BIAS     = 0.5f;
     bool  BOX_NORMALIZED  = false;
     float SMOOTH_ALPHA    = 0.0f;
-    float ANCHOR_FACTOR   = 1.0f;   // NEW: to match YAML
+    float ANCHOR_FACTOR   = 1.0f;   
 };
 
 
-// ---------- preprocessing (RGB uint8 -> NCHW float32 normalized) ----------
+// preprocessing 
 struct PreprocessorX_ONNX {
     float mean[3] = {0.485f, 0.456f, 0.406f};
     float stdv[3] = {0.229f, 0.224f, 0.225f};
@@ -89,7 +71,7 @@ struct PreprocessorX_ONNX {
     }
 };
 
-// ---------- crop & resize around target (square), returns (patch, resize_factor) ----------
+// crop and resize around target (square),
 static std::pair<cv::Mat, float> sample_target_fast(const cv::Mat& img_rgb,
                                                     const cv::Rect2f& bb_xywh,
                                                     float search_area_factor,
@@ -126,7 +108,7 @@ static std::pair<cv::Mat, float> sample_target_fast(const cv::Mat& img_rgb,
     return {resized, resize_factor};
 }
 
-// ---------- clip box to image ----------
+// box clip
 static cv::Rect2f clip_box(const cv::Rect2f& box, int H, int W, float margin=0.0f) {
     float x1 = box.x, y1 = box.y, x2 = x1 + box.width, y2 = y1 + box.height;
     x1 = std::min(std::max(0.f, x1), (float)W - margin);
@@ -138,7 +120,7 @@ static cv::Rect2f clip_box(const cv::Rect2f& box, int H, int W, float margin=0.0
     return {x1, y1, w, h};
 }
 
-// ---------- portable Hanning window (flattened outer product N x N) ----------
+// Hanning window (with flattened outer product N x N, otherwise not works)
 static std::vector<float> hanning_window(int num) {
     if (num <= 0) return {};
     const float PI = 3.14159265358979323846f;
@@ -155,7 +137,7 @@ static std::vector<float> hanning_window(int num) {
     return hw;
 }
 
-// ---------- anchors (either normalized centers or pixel centers) ----------
+// anchors (pixel centers) 
 static std::vector<cv::Point2f> make_anchors(int grid, const Cfg& cfg) {
     std::vector<cv::Point2f> g; g.reserve(grid * grid);
     for (int yy = 0; yy < grid; ++yy) {
@@ -176,7 +158,7 @@ static std::vector<cv::Point2f> make_anchors(int grid, const Cfg& cfg) {
     return g;
 }
 
-// ---------- ONNX helpers ----------
+//ONNX helpers
 struct IoNames {
     std::vector<std::string> inputs;
     std::vector<std::string> outputs;
@@ -209,7 +191,7 @@ static int get_model_input_hw(Ort::Session& sess, int fallback) {
         auto shp = get_io_shape(sess, i, true);
         if (shp.size() == 4) {
             int64_t H = shp[2], W = shp[3];
-            if (H > 0 && W > 0) return (int)H; // assume square
+            if (H > 0 && W > 0) return (int)H; 
         }
     }
     return fallback;
@@ -219,7 +201,7 @@ static void squeeze_leading_ones(std::vector<int64_t>& s) {
     while (!s.empty() && s.front() == 1) s.erase(s.begin());
 }
 
-// ---------- tracker ----------
+// tracker 
 class SiamTPN_ONNX {
 public:
     SiamTPN_ONNX(const std::string& z_path, const std::string& x_path, Cfg cfg)
@@ -229,7 +211,7 @@ public:
     {
         Ort::SessionOptions so;
         so.SetIntraOpNumThreads(1);
-        // If your ORT build has CUDA EP, you may enable it:
+        // ORT build can be extended to has CUDA EP, if yes then enable it:
         // OrtSessionOptionsAppendExecutionProvider_CUDA(so, 0);
 
         sess_z_ = std::make_unique<Ort::Session>(env_, z_path.c_str(), so);
@@ -261,7 +243,7 @@ public:
         Ort::Value z_tensor = Ort::Value::CreateTensor<float>(mem_, z_blob.data(), z_blob.size(),
                                                               z_shape.data(), z_shape.size());
 
-        // z run (contiguous arrays)
+        // z run 
         std::array<const char*, 1> in_names = { names_z_.inputs[0].c_str() };
         std::vector<const char*> out_names; out_names.reserve(names_z_.outputs.size());
         for (auto& s : names_z_.outputs) out_names.push_back(s.c_str());
@@ -299,7 +281,7 @@ public:
         Ort::Value k_tensor = Ort::Value::CreateTensor<float>(mem_, kernel_buf_.data(), kernel_buf_.size(),
                                                               kernel_shape_.data(), kernel_shape_.size());
 
-        // x run (contiguous arrays)
+        // x run 
         std::array<const char*, 2> in_names = {
             names_x_.inputs[0].c_str(),
             names_x_.inputs[1].c_str()
@@ -313,7 +295,7 @@ public:
                                  inputs.data(), inputs.size(),
                                  out_names.data(), out_names.size());
 
-        // find scores (..,2) and boxes (..,4)
+        // find scores 
         int idx_scores = -1, idx_boxes = -1;
         for (size_t i = 0; i < outs.size(); ++i) {
             auto info = outs[i].GetTensorTypeAndShapeInfo();
@@ -342,7 +324,7 @@ public:
         std::vector<float> cls1(N);
         for (size_t i = 0; i < N; ++i) cls1[i] = scores[2*i + 1];
 
-        // boxes (N,4) -> [l,t,r,b]
+        // boxes from (N,4) -> [l,t,r,b]
         auto b_info = outs[idx_boxes].GetTensorTypeAndShapeInfo();
         auto b_shape = b_info.GetShape(); squeeze_leading_ones(b_shape);
         die_if((size_t)b_shape[0] != N || b_shape[1] != 4, "Boxes shape mismatch.");
@@ -390,7 +372,7 @@ public:
         if (x2_crop < x1_crop) std::swap(x1_crop, x2_crop);
         if (y2_crop < y1_crop) std::swap(y1_crop, y2_crop);
 
-        // crop-pixels → image-pixels 
+        // crop-pixels -> image-pixels 
         float x1 = x1_crop / resize_factor;
         float y1 = y1_crop / resize_factor;
         float x2 = x2_crop / resize_factor;
@@ -409,12 +391,12 @@ public:
 
         cv::Rect2f new_state(x1, y1, std::max(0.f, x2 - x1), std::max(0.f, y2 - y1));
 
-        // Minimal visible size (avoid zero-size boxes)
+        
         const float MIN_WH = 4.0f;
         if (new_state.width < MIN_WH)  new_state.width  = MIN_WH;
         if (new_state.height < MIN_WH) new_state.height = MIN_WH;
 
-        // Optional EMA smoothing
+        // EMA smoothing
         if (cfg_.SMOOTH_ALPHA > 0.f && frame_counter_ > 0) {
             float a = cfg_.SMOOTH_ALPHA;
             new_state.x      = a*state_.x      + (1.f-a)*new_state.x;
@@ -423,7 +405,7 @@ public:
             new_state.height = a*state_.height + (1.f-a)*new_state.height;
         }
 
-        // Clip to image; fallback to previous if invalid
+        // Clip to image, fallback to previous if were invalid
         new_state = clip_box(new_state, image_rgb.rows, image_rgb.cols, 10.0f);
         if (!valid_box(new_state) || new_state.width < MIN_WH || new_state.height < MIN_WH) {
             new_state = state_;
@@ -447,7 +429,7 @@ private:
     std::unique_ptr<Ort::Session> sess_x_;
     IoNames names_z_, names_x_;
 
-    // cached kernel
+    
     std::vector<float> kernel_buf_;
     std::vector<int64_t> kernel_shape_;
 
@@ -455,13 +437,13 @@ private:
     cv::Rect2f state_;
     int frame_counter_ = 0;
 
-    // window/anchors cache
-    int winN_ = -1; // flattened N
+    
+    int winN_ = -1; 
     std::vector<float> window_;
     std::vector<cv::Point2f> anchors_;
 };
 
-// ---------- UI helper ----------
+// UI 
 static void draw_help(cv::Mat& img) {
     cv::rectangle(img, {0,0}, {img.cols, 50}, {255,255,255}, cv::FILLED);
     cv::putText(img, "Select ROI (drag from corner). Press ENTER/SPACE to confirm; ESC to cancel.",
@@ -477,9 +459,9 @@ int main(int argc, char** argv) {
         bool show = true;
 
         // CLI toggles
-        Cfg cfg; // defaults; override via args
+        Cfg cfg; 
 
-        // parse args
+        // for flexibility issues
         for (int i = 1; i < argc; ++i) {
             std::string a = argv[i];
             auto next = [&](const char* flag){
@@ -526,7 +508,7 @@ int main(int argc, char** argv) {
 
         std::unique_ptr<cv::VideoWriter> writer;
         if (!save_path.empty()) {
-            int fourcc = cv::VideoWriter::fourcc('M','J','P','G'); // change to mp4v if needed
+            int fourcc = cv::VideoWriter::fourcc('M','J','P','G'); // can be changed to mp4v
             double fps = cap.get(cv::CAP_PROP_FPS); if (fps <= 1e-3) fps = 25.0;
             writer = std::make_unique<cv::VideoWriter>(save_path, fourcc, fps,
                         cv::Size(frame_bgr.cols, frame_bgr.rows));
@@ -542,10 +524,10 @@ int main(int argc, char** argv) {
             double fps = cv::getTickFrequency() / (cv::getTickCount() - t0);
 
             cv::Mat out = frame_bgr.clone();
-            // crosshair at center (visible even if box is tiny)
+            // crosshair at center (if box is tiny)
             cv::Point c((int)(bb.x + bb.width*0.5f), (int)(bb.y + bb.height*0.5f));
             cv::drawMarker(out, c, {0,255,255}, cv::MARKER_CROSS, 12, 2);
-            // green box
+            // green box (tracking)
             cv::rectangle(out, bb, {0,255,0}, 3);
             // fps text
             char txt[64]; std::snprintf(txt, sizeof(txt), "FPS: %.1f", fps);
