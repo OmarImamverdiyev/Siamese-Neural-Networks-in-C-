@@ -1,5 +1,4 @@
-# Siamese-Neural-Networks-in-C-
-
+# Siamese-Neural-Networks-in-C++
 
 This project is a **C++ implementation** of the **Siamese Transformer Pyramid Network (SiamTPN)** for single‑object tracking, converted from a Python baseline and designed to run with **ONNX Runtime**.  
 Tested on **Linux Mint** (CPU-oriented).
@@ -8,7 +7,7 @@ Tested on **Linux Mint** (CPU-oriented).
 
 ---
 
-## Background 
+## Background
 SiamTPN combines **lightweight CNN backbones** (e.g., ShuffleNetV2) with a **Transformer Pyramid Network (TPN)** that fuses multi‑scale features efficiently. A **Pooling Attention** design keeps attention costs low, enabling **real‑time CPU** tracking (≈30+ FPS reported in the paper), while maintaining competitive accuracy on benchmarks like LaSOT and UAV123.
 
 ---
@@ -26,7 +25,6 @@ wget https://github.com/microsoft/onnxruntime/releases/download/v1.19.0/onnxrunt
 tar -xzf onnxruntime-linux-x64-1.19.0.tgz -C $HOME/dev
 export ORT_HOME="$HOME/dev/onnxruntime-linux-x64-1.19.0"
 ```
-
 > You can put the `export ORT_HOME=...` line into your shell profile to persist it across sessions.
 
 ---
@@ -63,6 +61,47 @@ Example command (relative paths assume models/video are in the project root or o
 - `--save` : Save annotated video to the given path
 
 On the first frame you’ll be asked to **select an ROI**; press **ENTER/SPACE** to confirm, **ESC** to cancel.
+
+---
+
+## Results / Demo
+
+Place your sample input and output videos in the project root (or link to them if hosted elsewhere):
+
+- **Before (input):** [`test.mp4`](./test.mp4)
+- **After (tracking output):** [`tracking.avi`](./tracking.avi)  _(or `tracked_fixed.avi` if you used the example command)_
+
+> **Tip (GitHub/Markdown doesn’t autoplay videos):** For pretty READMEs, convert short clips to GIFs and embed them.
+
+Generate lightweight GIFs with `ffmpeg`:
+```bash
+# Input demo (first 6 seconds @ 480px wide)
+ffmpeg -y -i test.mp4 -t 6 -vf "fps=20,scale=480:-1:flags=lanczos" demo_input.gif
+
+# Tracked demo (first 6 seconds @ 480px wide)
+ffmpeg -y -i tracking.avi -t 6 -vf "fps=20,scale=480:-1:flags=lanczos" demo_tracked.gif
+```
+
+Then reference them in this README:
+```markdown
+**Input (test.mp4)**  
+![demo_input](./demo_input.gif)
+
+**Tracked (tracking.avi)**  
+![demo_tracked](./demo_tracked.gif)
+```
+
+If you prefer static thumbnails instead of GIFs:
+```bash
+# Grab representative frames (at 2s)
+ffmpeg -y -ss 2 -i test.mp4 -frames:v 1 input_frame.jpg
+ffmpeg -y -ss 2 -i tracking.avi -frames:v 1 tracked_frame.jpg
+```
+and embed with:
+```markdown
+![input_frame](./input_frame.jpg)  
+![tracked_frame](./tracked_frame.jpg)
+```
 
 ---
 
