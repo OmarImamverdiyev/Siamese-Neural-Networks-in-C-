@@ -64,45 +64,6 @@ On the first frame you’ll be asked to **select an ROI**; press **ENTER/SPACE**
 
 ---
 
-## Results / Demo
-
-Place your sample input and output videos in the project root (or link to them if hosted elsewhere):
-
-- **Before (input):** [`test.mp4`](./test.mp4)
-- **After (tracking output):** [`tracking.avi`](./tracking.avi)  _(or `tracked_fixed.avi` if you used the example command)_
-
-> **Tip (GitHub/Markdown doesn’t autoplay videos):** For pretty READMEs, convert short clips to GIFs and embed them.
-
-Generate lightweight GIFs with `ffmpeg`:
-```bash
-# Input demo (first 6 seconds @ 480px wide)
-ffmpeg -y -i test.mp4 -t 6 -vf "fps=20,scale=480:-1:flags=lanczos" demo_input.gif
-
-# Tracked demo (first 6 seconds @ 480px wide)
-ffmpeg -y -i tracking.avi -t 6 -vf "fps=20,scale=480:-1:flags=lanczos" demo_tracked.gif
-```
-
-Then reference them in this README:
-```markdown
-**Input (test.mp4)**  
-![demo_input](./demo_input.gif)
-
-**Tracked (tracking.avi)**  
-![demo_tracked](./demo_tracked.gif)
-```
-
-If you prefer static thumbnails instead of GIFs:
-```bash
-# Grab representative frames (at 2s)
-ffmpeg -y -ss 2 -i test.mp4 -frames:v 1 input_frame.jpg
-ffmpeg -y -ss 2 -i tracking.avi -frames:v 1 tracked_frame.jpg
-```
-and embed with:
-```markdown
-![input_frame](./input_frame.jpg)  
-![tracked_frame](./tracked_frame.jpg)
-```
-
 ### Visual Demos (GIF)
 
 **Input (test.gif)**  
@@ -111,7 +72,7 @@ and embed with:
 **Tracked (tracking.gif)**  
 ![tracked](./tracking.gif)
 
-> If your file is named `tracking.git` by mistake, rename it to `tracking.gif` so it renders in Markdown.
+> On the first frame the tracker prompts the user to select a Region of Interest (ROI). In this demo, the human in the video was chosen as the ROI, and the tracker then follows that person across frames.
 
 ---
 
