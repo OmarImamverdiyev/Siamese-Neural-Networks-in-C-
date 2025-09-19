@@ -8,7 +8,7 @@ Tested on **Linux Mint** (CPU-oriented).
 
 ---
 
-## Background (very short)
+## Background 
 SiamTPN combines **lightweight CNN backbones** (e.g., ShuffleNetV2) with a **Transformer Pyramid Network (TPN)** that fuses multi‑scale features efficiently. A **Pooling Attention** design keeps attention costs low, enabling **real‑time CPU** tracking (≈30+ FPS reported in the paper), while maintaining competitive accuracy on benchmarks like LaSOT and UAV123.
 
 ---
