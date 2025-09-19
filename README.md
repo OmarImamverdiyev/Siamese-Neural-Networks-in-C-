@@ -103,6 +103,16 @@ and embed with:
 ![tracked_frame](./tracked_frame.jpg)
 ```
 
+### Visual Demos (GIF)
+
+**Input (test.gif)**  
+![test](./test.gif)
+
+**Tracked (tracking.gif)**  
+![tracked](./tracking.gif)
+
+> If your file is named `tracking.git` by mistake, rename it to `tracking.gif` so it renders in Markdown.
+
 ---
 
 ## Notes
