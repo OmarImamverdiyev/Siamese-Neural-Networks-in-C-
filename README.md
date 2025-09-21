@@ -46,7 +46,7 @@ If CMake can’t find OpenCV: make sure `libopencv-dev` is installed and `pkg-co
 ## Run
 Example command (relative paths assume models/video are in the project root or one level up as shown):
 ```bash
-./tracker   --video ../test.mp4   --z ../backbone_fpn_z.onnx   --x ../backbone_fpn_head_x.onnx   --box-normalized 1   --hanning 0.01   --smooth 0.6   --template-factor 1.5   --show   --save ../tracked_fixed.avi
+./tracker --video ../test.mp4 --z ../backbone_fpn_z.onnx --x ../backbone_fpn_head_x.onnx --show --save ../tracked_fixed.avi
 ```
 
 ### Arguments
