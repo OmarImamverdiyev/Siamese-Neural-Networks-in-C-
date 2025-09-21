@@ -79,4 +79,48 @@ On the first frame you’ll be asked to **select an ROI**; press **ENTER/SPACE**
 ## Notes
 - The code runs on **CPU** by default. If your ONNX Runtime build supports CUDA, you can enable the CUDA EP by adding the corresponding line in the code where session options are created.  
 - FPS is printed overlayed on the output frames.  
-- Make sure both ONNX files are present in the **root folder** (or adjust the `--z` / `--x` paths accordingly).
+- Make sure both ONNX files are present in the **root folder** (or adjust the `--z` / `--x` paths accordingly).  
+
+---
+
+# Benchmarking (OTB-2015 Precision)
+
+Use the same executable to run **dataset benchmarking** on OTB-2015. Place the dataset like:
+
+```
+OTB/
+ ├─ Basketball/
+ │   ├─ img/                  # 0001.jpg, 0002.jpg ... (zero‑padded) or .png
+ │   └─ groundtruth_rect.txt  # x,y,w,h per line (commas or spaces)
+ ├─ Bird1/
+ │   ├─ img/
+ │   └─ groundtruth_rect.txt
+ └─ ...
+```
+
+### Run the benchmark
+```bash
+./tracker \
+  --otb-root ./OTB \
+  --z ./backbone_fpn_z.onnx \
+  --x ./backbone_fpn_head_x.onnx \
+  --thr 20
+```
+
+- `--otb-root` enables benchmark mode (scans subfolders with `img/` & `groundtruth_rect.txt`).
+- `--thr` sets the primary precision threshold in pixels (default: 20).  
+- The program prints per‑sequence **Precision@5/10/20/30/50px**, then dataset averages.
+
+### Interpreting results
+- The classic OTB metric is **Precision@20px**. Your reported averages:
+  - **@5px:** 42.75%  
+  - **@10px:** 67.49%  
+  - **@20px:** **85.00%**  
+  - **@30px:** 91.11%  
+  - **@50px:** 95.54%  
+
+  **Is 85%@20px good?** Yes—strong for a light, CPU‑friendly Siamese tracker. It’s above early baselines (e.g., SiamFC ~70s) and a bit below the heaviest modern SOTAs that can reach high‑80s/low‑90s on OTB.
+
+
+---
+
