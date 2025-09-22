@@ -115,8 +115,7 @@ OTB/
   - **@30px:** 91.11%  
   - **@50px:** 95.54%  
 
-  **Is 85%@20px good?** Yes—strong for a light, CPU‑friendly Siamese tracker. It’s above early baselines (e.g., SiamFC ~70s) and a bit below the heaviest modern SOTAs that can reach high‑80s/low‑90s on OTB.
-
+ 
 
 ---
 
