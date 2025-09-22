@@ -108,7 +108,7 @@ OTB/
 - The program prints per‑sequence **Precision@5/10/20/30/50px**, then dataset averages.
 
 ### Interpreting results
-- The classic OTB metric is **Precision@20px**. Your reported averages:
+- The classic OTB metric is **Precision@20px**. In our case, reported averages:
   - **@5px:** 42.75%  
   - **@10px:** 67.49%  
   - **@20px:** **85.00%**  
