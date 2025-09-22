@@ -1,3 +1,0 @@
-D:/GitHub Repos/Siamese-Neural-Networks-in-C-/build/CMakeFiles/tracker.dir
-D:/GitHub Repos/Siamese-Neural-Networks-in-C-/build/CMakeFiles/ALL_BUILD.dir
-D:/GitHub Repos/Siamese-Neural-Networks-in-C-/build/CMakeFiles/ZERO_CHECK.dir
