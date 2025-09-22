@@ -52,11 +52,7 @@ Example command (relative paths assume models/video are in the project root or o
 ### Arguments
 - `--video` : Path to input video file  
 - `--z` : Template ONNX model (kernel branch)  
-- `--x` : Search/head ONNX model  
-- `--box-normalized` : `1` if model outputs are in normalized crop coords; `0` for pixel‑space anchors  
-- `--hanning` : Hanning window influence (e.g., `0.01`)  
-- `--smooth` : Exponential moving average factor for box smoothing (e.g., `0.6`)  
-- `--template-factor` : Template crop enlargement factor (e.g., `1.5`)  
+- `--x` : Search/head ONNX model   
 - `--show` : Show live window  
 - `--save` : Save annotated video to the given path
 
